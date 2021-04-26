@@ -1,0 +1,11 @@
+﻿{
+  "profiles": {
+    "CustomConfiguration": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development",
+        "DOTNET_Subsection:MyIntValue": "1"
+      }
+    }
+  }
+}
