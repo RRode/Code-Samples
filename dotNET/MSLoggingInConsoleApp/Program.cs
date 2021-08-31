@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MSLoggingInConsoleApp
@@ -11,12 +11,13 @@ namespace MSLoggingInConsoleApp
     {
         static void Main(string[] args)
         {
-            //Sample_01();
-            //Sample_02_unfiltered();
-            //Sample_02_filter_rules_in_code();
-            //Sample_02_filter_rules_in_config_file();
-            //Sample_03_different_ways_to_log();
+            Sample_01();
+            Sample_02_unfiltered();
+            Sample_02_filter_rules_in_code();
+            Sample_02_filter_rules_in_config_file();
+            Sample_03_different_ways_to_log();
             Sample_04_Adding_file_logging_with_Serilog();
+            Sample_05_Using_custom_logger();
         }
 
         private static void Sample_01()
@@ -166,6 +167,22 @@ namespace MSLoggingInConsoleApp
 
             Task.Delay(1000).Wait();
         }
+
+        private static void Sample_05_Using_custom_logger()
+        {
+            var sb = new StringBuilder();
+            using var loggerFactory = LoggerFactory.Create(lb =>
+            {
+                var provider = new WriteActionLoggerProvider(m => sb.AppendLine(m));
+                lb.AddProvider(provider);
+            });
+
+            var logger = loggerFactory.CreateLogger<Program>();
+
+            logger.LogError("Hello world!");
+
+            Console.Write(sb.ToString());
+        }
     }
 
     public static class MyEventIds
@@ -173,4 +190,82 @@ namespace MSLoggingInConsoleApp
         public const int HelloWorld = 10;
     }
 
+    public class WriteActionLoggerProvider : ILoggerProvider
+    {
+        private readonly Action<string> _writeTarget;
+
+        public WriteActionLoggerProvider(Action<string> writeTarget)
+        {
+            _writeTarget = writeTarget;
+        }
+
+        public ILogger CreateLogger(string categoryName)
+        {
+            return new WriteActionLogger(categoryName, _writeTarget);
+        }
+
+        public void Dispose()
+        {
+            //Empty
+        }
+    }
+
+    public class WriteActionLogger : ILogger
+    {
+        private readonly string _name;
+        private readonly Action<string> _writeTarget;
+
+        public WriteActionLogger(string name, Action<string> writeTarget)
+        {
+            _name = name ?? throw new ArgumentNullException(nameof(name));
+            _writeTarget = writeTarget ?? throw new ArgumentNullException(nameof(writeTarget));
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            if (!IsEnabled(logLevel))
+            {
+                return;
+            }
+
+            if (formatter == null)
+            {
+                throw new ArgumentNullException(nameof(formatter));
+            }
+
+            var message = formatter(state, exception);
+
+            if (message != null)
+            {
+                if (exception != null)
+                {
+                    message += Environment.NewLine + "Exception message: " + exception.Message + Environment.NewLine + exception.StackTrace;
+                }
+
+                message = $"[{_name}] {message}";
+
+                _writeTarget(message);
+            }
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return logLevel != LogLevel.None;
+        }
+
+        public IDisposable BeginScope<TState>(TState state) => NullScope.Instance;
+    }
+
+    public class NullScope : IDisposable
+    {
+        public static NullScope Instance { get; } = new NullScope();
+
+        private NullScope()
+        {
+        }
+
+        public void Dispose()
+        {
+        }
+    }
 }
