@@ -28,7 +28,7 @@ namespace MSLoggingInConsoleApp
             });
 
             var logger = loggerFactory.CreateLogger("MyCategoryName");
-            logger.LogInformation("Hello world!");
+            logger.LogInformation("Hello, world!");
             
             //Alternative to above extension method.
             //logger.Log(LogLevel.Information, "Hello World!");
@@ -163,7 +163,7 @@ namespace MSLoggingInConsoleApp
 
             var logger = loggerFactory.CreateLogger<Program>();
             
-            logger.LogError("Hello world!"); //Disposes too quickly in order to write something?
+            logger.LogError("Hello, world!"); //Disposes too quickly in order to write something?
 
             Task.Delay(1000).Wait();
         }
@@ -179,7 +179,7 @@ namespace MSLoggingInConsoleApp
 
             var logger = loggerFactory.CreateLogger<Program>();
 
-            logger.LogError("Hello world!");
+            logger.LogError("Hello, world!");
 
             Console.Write(sb.ToString());
         }
