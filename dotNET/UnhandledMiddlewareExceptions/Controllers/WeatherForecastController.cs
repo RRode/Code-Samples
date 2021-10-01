@@ -32,6 +32,7 @@ namespace UnhandledMiddlewareExceptions.Controllers
 
         private async void CrashMeAsyncVoid()
         {
+            //Simulate async work
             await Task.Delay(100);
 
             throw new Exception("Crashed by async void method.");
@@ -49,6 +50,7 @@ namespace UnhandledMiddlewareExceptions.Controllers
 
         private async Task CrashMeAsyncTask()
         {
+            //Simulate async work
             await Task.Delay(100);
 
             throw new Exception("Crashed by async Task method.");
