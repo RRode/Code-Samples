@@ -35,7 +35,7 @@ namespace UnhandledMiddlewareExceptions
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
         {
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
@@ -51,6 +51,18 @@ namespace UnhandledMiddlewareExceptions
             {
                 endpoints.MapControllers();
             });
+
+            AppDomain.CurrentDomain.UnhandledException +=
+                (s, e) => {
+                    var message = "Uncaught exception occurred.";
+
+                    if (e.IsTerminating)
+                    {
+                        message += " Application will terminate.";
+                    }
+
+                    logger.LogCritical(e.ExceptionObject as Exception, message);
+                };
         }
     }
 }
